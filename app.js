@@ -3,8 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const mongoose = require('mongoose');
-// const url = 'mongodb+srv://drpl-admin-3607:ZeMSIaif67GMROvI@cluster0.ohfnm.mongodb.net/drpl?retryWrites=true&w=majority';
-const url = 'mongodb://localhost:27017/drpl';
+const url = 'mongodb+srv://drpl-admin-3607:ZeMSIaif67GMROvI@cluster0.ohfnm.mongodb.net/drpl?retryWrites=true&w=majority';
+// const url = 'mongodb://localhost:27017/drpl';
 const cors = require('cors');
 
 const app = express();
