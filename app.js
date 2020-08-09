@@ -8,7 +8,7 @@ const url = 'mongodb+srv://drpl-admin-3607:ZeMSIaif67GMROvI@cluster0.ohfnm.mongo
 const cors = require('cors');
 
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
 
 app.use(cors());
 
