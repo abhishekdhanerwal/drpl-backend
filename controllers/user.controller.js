@@ -10,7 +10,7 @@ exports.login = async (req, res, next) => {
             res.status(500).send(err);
         }
     } else {
-        res.status(401).send('Invalid username');
+        res.status(401).send('Invalid username/password');
     }
 }
 
