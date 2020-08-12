@@ -8,7 +8,7 @@ const productSchema = new Schema({
     name: { type: String, required: true },
     unit: { type: String, required: true },
     unitType: { type: String, required: true },
-    gsnCode: { type: String, required: true },
+    hsnCode: { type: String, required: true },
     basicCost: { type: String, required: true },
     gstPercentage: { type: String, required: true },
     gst: { type: String, required: true },

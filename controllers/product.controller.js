@@ -38,7 +38,7 @@ exports.getAll = async(req, res, next) => {
 
     try{
         let result = await ProductModel.find();
-        let stockList = await StockModel.find({'date':{'$gte': new Date(currentYear, currentMonth, currentDate), '$lt': new Date(currentYear, (currentMonth+1), currentDate)}});
+        let stockList = await StockModel.find({'date':{'$gte': new Date(currentYear, currentMonth, 1), '$lt': new Date(currentYear, (currentMonth+1), 0)}});
         let stock = stockList.reduce((accumulator, currentValue) => {
             accumulator[currentValue.productId] = currentValue.purchasedStock || currentValue.openingStock ? (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0)  + Number(currentValue.purchasedStock || currentValue.openingStock) : (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0) - Number(currentValue.productSale);
             return accumulator;
@@ -57,7 +57,7 @@ exports.getActiveProducts = async (req, res, next) => {
 
     try{
         let result = await ProductModel.find({active: true});
-        let stockList = await StockModel.find({'date':{'$gte': new Date(currentYear, currentMonth, currentDate), '$lt': new Date(currentYear, (currentMonth+1), currentDate)}});
+        let stockList = await StockModel.find({'date':{'$gte': new Date(currentYear, currentMonth, 1), '$lt': new Date(currentYear, (currentMonth+1), 0)}});
         let stock = stockList.reduce((accumulator, currentValue) => {
             accumulator[currentValue.productId] = currentValue.purchasedStock || currentValue.openingStock ? (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0)  + Number(currentValue.purchasedStock || currentValue.openingStock) : (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0) - Number(currentValue.productSale);
             return accumulator;
