@@ -12,6 +12,7 @@ const userSchema = new Schema({
     role: { type: String, required: true },
     fatherName: { type: String, required: true },
     // dob: { type: Date, required: true },
+    gstNo: { type: String },
     pan: { type: String, required: true },
     // aadhaar: { type: String, required: true },
     address: { type: String, required: true },

@@ -3,17 +3,25 @@ const OrderModel = require('../models/order.model');
 const StockModel = require('../models/stock.model');
 const UserModel = require('../models/user.model');
 const IncomeModel = require('../models/income.model');
+const ConfigModel = require('../models/config.model');
 
 exports.create = async(req, res, next) => {
     let incomeGenerated = {};
 
     try {
+
+        let configuration = await ConfigModel.find().lean();
+        const newID = Number(++configuration[0].invoiceId);
         const Order = new OrderModel({
             date: new Date(),
             leaderId: req.body.leaderId,
             products: req.body.items,
+            totalSaleCost: req.body.totalSaleCost,
+            totalCgst: req.body.totalCgst,
+            totalSgst: req.body.totalSgst,
+            totalIgst: req.body.totalIgst,
             totalCost: req.body.totalCost,
-            orderId: `INV${new Date().getTime()}`
+            orderId: `INV${newID}`
         });
 
         req.body.items.forEach(async (element) => {
@@ -31,6 +39,9 @@ exports.create = async(req, res, next) => {
 
         const result = await Order.save();
 
+        const objectId = configuration[0]._id.toString();
+        await ConfigModel.updateOne({_id: objectId}, {invoiceId : newID});
+
         let today = new Date();
 
         const user = await UserModel.findOne({id : req.body.leaderId}).lean();
@@ -39,7 +50,7 @@ exports.create = async(req, res, next) => {
             {
                 date: `${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`,
                 leaderId: req.body.leaderId,
-                purchasedAmount: req.body.totalCost
+                purchasedAmount: req.body.totalSaleCost
             }, incomeGenerated)
         );
 
@@ -47,7 +58,7 @@ exports.create = async(req, res, next) => {
             date: `${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`,
             leaderId: user.parentId,
             childrenId: req.body.leaderId,
-            sponsoredIncome: (Number(req.body.totalCost)*0.10)
+            sponsoredIncome: (Number(req.body.totalSaleCost)*0.10)
         });
 
         await income.save();
