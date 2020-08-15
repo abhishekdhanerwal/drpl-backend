@@ -11,7 +11,7 @@ router.post('/getActiveList', userController.getActiveUsers);
 
 router.post('/register', userController.register);
 
-router.get('/:id', userController.userDetails);
+router.post('/:id', userController.userDetails);
 
 router.post('/toggleStatus', userController.toggleStatus)
 

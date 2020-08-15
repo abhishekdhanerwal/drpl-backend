@@ -71,21 +71,13 @@ exports.register = async (req, res, next) => {
 }
 
 /* http://localhost:8080/user/8237hjsdb?edit=true */
-exports.userDetails = (req, res, next) => {
-    console.log(req.params);
-    console.log(req.query);
-    console.log(userModel);
-    // const user = userModel('user A','Delhi');
-    user.save().then(res => {
-        console.log(res);
-        res.json({
-            title: 'user A',
-            location: 'Delhi'
-        })
-    }).catch(err => {
-        res.json(err)
-    });
-
+exports.userDetails = async(req, res, next) => {
+    try {
+        const userFromDb = await UserModel.findOne({ id: req.params.id}).exec();
+        res.json(userFromDb);
+    } catch (err) {
+        res.status(500).send(err);
+    }
 }
 
 exports.toggleStatus = async(req, res, next) => {
