@@ -44,13 +44,14 @@ exports.create = async(req, res, next) => {
 
         let today = new Date();
 
-        const user = await UserModel.findOne({id : req.body.leaderId}).lean();
+        let user = await UserModel.findOne({id : req.body.leaderId});
+        let parentUser = await UserModel.findOne({id: user.parentId});
         
         const income = new IncomeModel(Object.assign( {}, 
             {
                 date: `${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`,
                 leaderId: req.body.leaderId,
-                purchasedAmount: req.body.totalSaleCost
+                purchasedAmount: ( Math.floor(req.body.totalSaleCost * 100) / 100 )
             }, incomeGenerated)
         );
 
@@ -58,11 +59,38 @@ exports.create = async(req, res, next) => {
             date: `${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`,
             leaderId: user.parentId,
             childrenId: req.body.leaderId,
-            sponsoredIncome: (Number(req.body.totalSaleCost)*0.10)
+            sponsoredIncome: ( Math.floor((Number(req.body.totalSaleCost)*0.10) * 100) / 100 )
         });
+
+        user.totalSale = Number(user.totalSale) + Number(req.body.totalSaleCost);
+        user.totalSale = ( Math.floor(user.totalSale * 100) / 100 );
+        if(user.monthlySale){
+            let newMonthlySale = {...user.monthlySale};
+            newMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = newMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] ? (Number(newMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]) + Number(req.body.totalSaleCost)) : Number(req.body.totalSaleCost);
+            newMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = (Math.floor(newMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] * 100) / 100);
+            user.monthlySale = newMonthlySale;
+
+        } else {
+            user.monthlySale = {};
+            user.monthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = ( Math.floor(req.body.totalSaleCost * 100) / 100 );
+        }
+
+        parentUser.totalSponsorIncome = Number(parentUser.totalSponsorIncome) + (Number(req.body.totalSaleCost)*0.10);
+        parentUser.totalSponsorIncome = ( Math.floor(parentUser.totalSponsorIncome * 100) / 100 );
+        if(parentUser.monthlySponsorIncome) {
+            let newSponsorMonthlySale = {...parentUser.monthlySponsorIncome};
+            newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] ? (Number(newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]) + (Number(req.body.totalSaleCost)*0.10)) : (Number(req.body.totalSaleCost)*0.10);
+            newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = ( Math.floor(newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] * 100) / 100 ); 
+            parentUser.monthlySponsorIncome = newSponsorMonthlySale;
+        } else {
+            parentUser.monthlySponsorIncome = {};
+            parentUser.monthlySponsorIncome[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = ( Math.floor((req.body.totalSaleCost*0.10) * 100) / 100 );
+        }
 
         await income.save();
         await income2.save();
+        await user.save();
+        await parentUser.save();
 
         res.json(result);
     } catch (err) {

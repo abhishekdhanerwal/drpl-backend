@@ -9,6 +9,8 @@ router.post('/getAll', userController.getAll);
 
 router.post('/getActiveList', userController.getActiveUsers);
 
+router.post('/dashboard', userController.getActiveUsersSortedByMonthlySale);
+
 router.post('/register', userController.register);
 
 router.post('/:id', userController.userDetails);

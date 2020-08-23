@@ -32,6 +32,16 @@ exports.getActiveUsers = async (req, res, next) => {
     }
 }
 
+exports.getActiveUsersSortedByMonthlySale = async (req, res, next) => {
+    let today = new Date();
+    try {
+        const allUsers = await UserModel.find({active: true}).sort({[`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: -1});
+        res.json(allUsers);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+}
+
 exports.register = async (req, res, next) => {
     let request = {...req.body.userDetails};
     let parentId = req.body.parentIdDetails.id;
@@ -57,7 +67,7 @@ exports.register = async (req, res, next) => {
             
             await UserModel.update({'id':parentId}, {'$addToSet': { 'childrenId': leaderId}});
             
-            const User = new UserModel({...request, createdOn : new Date(), parentId, id: leaderId, role: 'seller', active: true});
+            const User = new UserModel({...request, createdOn : new Date(), parentId, id: leaderId, role: 'seller', active: true, totalSale: 0, totalSponsorIncome: 0});
             const objectId = configuration[0]._id.toString();
             await ConfigModel.updateOne({_id: objectId}, {userId : newID});
             const result = await User.save();
