@@ -35,7 +35,7 @@ exports.getActiveUsers = async (req, res, next) => {
 exports.getActiveUsersSortedByMonthlySale = async (req, res, next) => {
     let today = new Date();
     try {
-        const allUsers = await UserModel.find({active: true}).sort({[`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: -1});
+        const allUsers = await UserModel.find({active: true, role: "seller"}).sort({[`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: -1});
         res.json(allUsers);
     } catch (err) {
         res.status(500).send(err);
