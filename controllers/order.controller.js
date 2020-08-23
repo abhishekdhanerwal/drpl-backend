@@ -112,7 +112,7 @@ exports.getDetail = async(req, res, next) => {
 }
 
 exports.getAll = async(req, res, next) => {
-
+    console.log('asd')
     try{
         const result = await OrderModel.find();
         res.json(result);
@@ -123,7 +123,6 @@ exports.getAll = async(req, res, next) => {
 }
 
 exports.getUserBills = async(req, res, next) => {
-
     try{
         const result = await OrderModel.find({leaderId : req.body.id});
         res.json(result);

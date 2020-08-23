@@ -82,6 +82,7 @@ exports.register = async (req, res, next) => {
 
 /* http://localhost:8080/user/8237hjsdb?edit=true */
 exports.userDetails = async(req, res, next) => {
+    console.log(req.params.id)
     try {
         const userFromDb = await UserModel.findOne({ id: req.params.id}).exec();
         res.json(userFromDb);
