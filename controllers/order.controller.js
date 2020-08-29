@@ -12,6 +12,7 @@ exports.create = async (req, res, next) => {
             res.status(401).json({ err: 'Token expired' });
         } else {
             let incomeGenerated = {};
+            let incomeOfUserForCurrentOrder = 0;
 
             try {
 
@@ -30,6 +31,7 @@ exports.create = async (req, res, next) => {
                 });
 
                 req.body.items.forEach(async (element) => {
+                    incomeOfUserForCurrentOrder = incomeOfUserForCurrentOrder + (Number(element.qty)*Number(element.plan1Income));
                     const Stock = new StockModel({
                         date: new Date(),
                         productId: element.productId,
@@ -64,7 +66,7 @@ exports.create = async (req, res, next) => {
                     date: `${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`,
                     leaderId: user.parentId,
                     childrenId: req.body.leaderId,
-                    sponsoredIncome: (Math.floor((Number(req.body.totalSaleCost) * 0.10) * 100) / 100)
+                    sponsoredIncome: (Math.floor((Number(incomeOfUserForCurrentOrder) * 0.10) * 100) / 100)
                 });
 
                 user.totalSale = Number(user.totalSale) + Number(req.body.totalSaleCost);
@@ -80,16 +82,16 @@ exports.create = async (req, res, next) => {
                     user.monthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = (Math.floor(req.body.totalSaleCost * 100) / 100);
                 }
 
-                parentUser.totalSponsorIncome = Number(parentUser.totalSponsorIncome) + (Number(req.body.totalSaleCost) * 0.10);
+                parentUser.totalSponsorIncome = Number(parentUser.totalSponsorIncome) + (Number(incomeOfUserForCurrentOrder) * 0.10);
                 parentUser.totalSponsorIncome = (Math.floor(parentUser.totalSponsorIncome * 100) / 100);
                 if (parentUser.monthlySponsorIncome) {
                     let newSponsorMonthlySale = { ...parentUser.monthlySponsorIncome };
-                    newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] ? (Number(newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]) + (Number(req.body.totalSaleCost) * 0.10)) : (Number(req.body.totalSaleCost) * 0.10);
+                    newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] ? (Number(newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]) + (Number(incomeOfUserForCurrentOrder) * 0.10)) : (Number(incomeOfUserForCurrentOrder) * 0.10);
                     newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = (Math.floor(newSponsorMonthlySale[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] * 100) / 100);
                     parentUser.monthlySponsorIncome = newSponsorMonthlySale;
                 } else {
                     parentUser.monthlySponsorIncome = {};
-                    parentUser.monthlySponsorIncome[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = (Math.floor((req.body.totalSaleCost * 0.10) * 100) / 100);
+                    parentUser.monthlySponsorIncome[`${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`] = (Math.floor((incomeOfUserForCurrentOrder * 0.10) * 100) / 100);
                 }
 
                 await income.save();
