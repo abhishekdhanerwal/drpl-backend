@@ -2,27 +2,36 @@ const UserModel = require('../models/user.model');
 const ConfigModel = require('../models/config.model');
 const jwt = require('jsonwebtoken');
 const smsApi = require('../utils/smsApi');
+const config = require('../utils/config');
+const CryptoJS = require('crypto-js');
 
 exports.login = async (req, res, next) => {
-    const userFromDb = await UserModel.findOne({ id: req.body.id, password: req.body.password }).exec();
+    const userFromDb = await UserModel.findOne({ id: req.body.id}).exec();
     if (userFromDb) {
         try {
-            let token = jwt.sign({
-                id: req.body.id,
-                city: userFromDb.city,
-                state: userFromDb.state
-            }, 'DieDieBangBang', { expiresIn: '3d' });
-            res.json({ userFromDb, token });
+            const plainPasswordFromDb = CryptoJS.AES.decrypt(userFromDb.password, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
+            const plainPasswordFromUser = CryptoJS.AES.decrypt(req.body.password, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
+            
+            if(plainPasswordFromDb === plainPasswordFromUser){
+                let token = jwt.sign({
+                    id: req.body.id,
+                    city: userFromDb.city,
+                    state: userFromDb.state
+                }, config.jwtSecretKey, { expiresIn: '3d' });
+                res.json({ userFromDb, token });
+            } else {
+                res.status(401).send('Invalid password');
+            }
         } catch (err) {
             res.status(500).send(err);
         }
     } else {
-        res.status(401).send('Invalid username/password');
+        res.status(401).send('Invalid username');
     }
 }
 
 exports.getAll = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -46,7 +55,7 @@ exports.getActiveUsers = async (req, res, next) => {
 }
 
 exports.getActiveUsersSortedByMonthlySale = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -62,14 +71,17 @@ exports.getActiveUsersSortedByMonthlySale = async (req, res, next) => {
 }
 
 exports.register = async (req, res, next) => {
-    let request = { ...req.body.userDetails };
+    let request = { ...req.body.userDetailsRequest };
     let parentId = req.body.parentIdDetails.id;
 
     const isUserFound = await UserModel.findOne({ mobile: request.mobile });
 
     if (!isUserFound) {
         try {
-            let plainPassword = request.password;
+            // request.password = CryptoJS.AES.decrypt(request.password, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
+            // request.accountNumber = CryptoJS.AES.decrypt(request.accountNumber, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
+            // request.ifscCode = CryptoJS.AES.decrypt(request.ifscCode, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
+            let plainPassword = CryptoJS.AES.decrypt(request.password, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
             if (request.image[0]) {
                 const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
                 const base64string = split[1];
@@ -95,9 +107,9 @@ exports.register = async (req, res, next) => {
                 id: result.id,
                 city: result.city,
                 state: result.state
-            }, 'DieDieBangBang', { expiresIn: '3d' });
+            }, config.jwtSecretKey, { expiresIn: '3d' });
             
-            // smsApi.sendPartnerWelcomeMessage(result.id, plainPassword, result.mobile);
+            smsApi.sendPartnerWelcomeMessage(result.id, plainPassword, result.mobile);
 
             res.json({ result, token });
         } catch (err) {
@@ -122,12 +134,14 @@ exports.getUserNumber = async (req, res, next) => {
 
 /* http://localhost:8080/user/8237hjsdb?edit=true */
 exports.userDetails = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
             try {
-                const userFromDb = await UserModel.findOne({ id: req.params.id }).exec();
+                let userFromDb = await UserModel.findOne({ id: req.params.id }).lean();
+                const parentIdDetails = await UserModel.findOne({id: userFromDb.parentId}).lean();
+                userFromDb.parentIdDetails = parentIdDetails;
                 res.json(userFromDb);
             } catch (err) {
                 res.status(500).send(err);
@@ -137,7 +151,7 @@ exports.userDetails = async (req, res, next) => {
 }
 
 exports.toggleStatus = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {

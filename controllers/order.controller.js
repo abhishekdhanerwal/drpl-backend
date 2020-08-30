@@ -5,9 +5,10 @@ const UserModel = require('../models/user.model');
 const IncomeModel = require('../models/income.model');
 const ConfigModel = require('../models/config.model');
 const jwt = require('jsonwebtoken');
+const config = require('../utils/config');
 
 exports.create = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -109,7 +110,7 @@ exports.create = async (req, res, next) => {
 }
 
 exports.getDetail = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -125,7 +126,7 @@ exports.getDetail = async (req, res, next) => {
 }
 
 exports.getAll = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -140,7 +141,7 @@ exports.getAll = async (req, res, next) => {
 }
 
 exports.getUserBills = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {

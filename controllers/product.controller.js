@@ -1,9 +1,10 @@
 const ProductModel = require('../models/product.model');
 const StockModel = require('../models/stock.model');
 const jwt = require('jsonwebtoken');
+const config = require('../utils/config');
 
 exports.save = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -39,7 +40,7 @@ exports.save = async (req, res, next) => {
 /* http://localhost:8080/shop/8237hjsdb?edit=true */
 exports.getAll = (req, res, next) => {
 
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -63,7 +64,7 @@ exports.getAll = (req, res, next) => {
 }
 
 exports.getActiveProducts = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -87,7 +88,7 @@ exports.getActiveProducts = async (req, res, next) => {
 }
 
 exports.getProduct = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -104,7 +105,7 @@ exports.getProduct = async (req, res, next) => {
 }
 
 exports.updateProduct = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
@@ -136,7 +137,7 @@ exports.updateProduct = async (req, res, next) => {
 }
 
 exports.toggleStatus = async (req, res, next) => {
-    jwt.verify(req.body.token, 'DieDieBangBang', async function (err, decoded) {
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
         if (err || (decoded.id !== req.body.id)) {
             res.status(401).json({ err: 'Token expired' });
         } else {
