@@ -61,8 +61,13 @@ exports.getActiveUsersSortedByMonthlySale = async (req, res, next) => {
         } else {
             let today = new Date();
             try {
-                const allUsers = await UserModel.find({ active: true, role: "seller" }).sort({ [`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: -1 });
-                res.json(allUsers);
+                const allUsers = await UserModel.find({ active: true, role: "seller",  [`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: { $exists: true, $ne: null } }).limit(3).sort({ [`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: -1 });
+                const currentUser = await UserModel.findOne({id: req.body.id});
+                const monthlyCompanySale = await UserModel.aggregate([
+                    { $match: { [`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`]: { $exists: true, $ne: null }  } },
+                    { $group: { _id: null, totalAmount: { $sum: `$${`monthlySale.${today.toLocaleString('default', { month: 'long' }).toLowerCase()}-${today.getFullYear()}`}` } } }
+                ])
+                res.json({allUsers, currentUser, monthlyCompanySale});
             } catch (err) {
                 res.status(500).send(err);
             }

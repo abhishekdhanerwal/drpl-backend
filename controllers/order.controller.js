@@ -154,3 +154,22 @@ exports.getUserBills = async (req, res, next) => {
         }
     });
 }
+
+exports.getCurrentOrdersById = async (req, res, next) => {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    const currentDate = new Date().getDate();
+
+    jwt.verify(req.body.token, config.jwtSecretKey, async function (err, decoded) {
+        if (err || (decoded.id !== req.body.id)) {
+            res.status(401).json({ err: 'Token expired' });
+        } else {
+            try {
+                const result = await OrderModel.find({ leaderId: req.body.userId,  'date': { '$gte': new Date(currentYear, currentMonth, 1), '$lt': new Date(currentYear, (currentMonth + 1), 0) }  });
+                res.json(result);
+            } catch (err) {
+                res.status(500).json(err);
+            }
+        }
+    });
+}
