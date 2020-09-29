@@ -14,14 +14,14 @@ exports.save = async (req, res, next) => {
                 const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
                 const base64string = split[1];
                 const buffer = Buffer.from(base64string, 'base64');
-        
+
                 request.image = buffer;
             } else {
                 request.image = "";
             }
-        
+
             const Product = new ProductModel({ ...request, productId: request.name.slice(0, 2).toLowerCase() + new Date().getTime(), creationDate: new Date(), updatedDate: new Date(), active: true })
-        
+
             try {
                 const result = await Product.save();
                 let stockResult;
@@ -34,7 +34,7 @@ exports.save = async (req, res, next) => {
                 res.status(500).json(err);
             }
         }
-    }); 
+    });
 }
 
 /* http://localhost:8080/shop/8237hjsdb?edit=true */
@@ -73,7 +73,7 @@ exports.getActiveProducts = async (req, res, next) => {
             const currentDate = new Date().getDate();
 
             try {
-                let result = await ProductModel.find({ active: true });
+                let result = await ProductModel.find({ active: true }, {image:0});
                 let stockList = await StockModel.find({ 'date': { '$gte': new Date(currentYear, currentMonth, 1), '$lt': new Date(currentYear, (currentMonth + 1), 0) } });
                 let stock = stockList.reduce((accumulator, currentValue) => {
                     accumulator[currentValue.productId] = currentValue.purchasedStock || currentValue.openingStock ? (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0) + Number(currentValue.purchasedStock || currentValue.openingStock) : (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0) - Number(currentValue.productSale);
@@ -149,4 +149,41 @@ exports.toggleStatus = async (req, res, next) => {
             }
         }
     });
+}
+
+exports.setNextMonthStock = async (req, res, next) => {
+    try {
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth();
+        const currentDate = new Date().getDate();
+
+        let stockList = await StockModel.find({ 'date': { '$gte': new Date(currentYear, currentMonth-1, 1), '$lt': new Date(currentYear, currentMonth, 0) } }).lean();
+        // console.log(stockList);
+        let mergedObject = {};
+        stockList.forEach((elem) => {
+            if(mergedObject[elem.productId]){
+                if(elem.purchasedStock && mergedObject[elem.productId].purchasedStock)
+                    mergedObject[elem.productId].purchasedStock += elem.purchasedStock;
+                else if(elem.productSale && mergedObject[elem.productId].productSale)
+                    mergedObject[elem.productId].productSale += elem.productSale;
+                else
+                    mergedObject[elem.productId] = {...mergedObject[elem.productId], ...elem};
+            } else {
+                mergedObject[elem.productId] = {...elem};
+            }
+        });
+
+        for(let key in mergedObject){
+            const Stock = new StockModel({ 
+                date: new Date(),
+                productId: key,
+                openingStock: (Number(mergedObject[key].purchasedStock - (mergedObject[key].productSale ? Number(mergedObject[key].productSale) : 0)))
+            });
+            await Stock.save();
+        }
+        res.send('update done');
+    } catch (err) {
+        res.status(500).json(err);
+    }
+
 }

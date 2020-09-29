@@ -13,6 +13,8 @@ router.post('/getProduct/:id', productController.getProduct);
 
 router.post('/update', productController.updateProduct);
 
-router.post('/toggleStatus', productController.toggleStatus)
+router.post('/toggleStatus', productController.toggleStatus);
+
+router.post('/setNextMonthStock', productController.setNextMonthStock);
 
 module.exports = router;

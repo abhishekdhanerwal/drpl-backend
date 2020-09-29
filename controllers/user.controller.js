@@ -36,7 +36,7 @@ exports.getAll = async (req, res, next) => {
             res.status(401).json({ err: 'Token expired' });
         } else {
             try {
-                const allUsers = await UserModel.find().exec();
+                const allUsers = await UserModel.find({}, {image:0}).exec();
                 res.json(allUsers);
             } catch (err) {
                 res.status(500).send(err);
@@ -47,7 +47,7 @@ exports.getAll = async (req, res, next) => {
 
 exports.getActiveUsers = async (req, res, next) => {
     try {
-        const allUsers = await UserModel.find({ active: true }).exec();
+        const allUsers = await UserModel.find({ active: true }, {image:0}).exec();
         res.json(allUsers);
     } catch (err) {
         res.status(500).send(err);
