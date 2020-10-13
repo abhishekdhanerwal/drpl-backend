@@ -10,15 +10,15 @@ exports.save = async (req, res, next) => {
         } else {
             let request = { ...req.body.productInfo };
 
-            if (request.image[0]) {
-                const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
-                const base64string = split[1];
-                const buffer = Buffer.from(base64string, 'base64');
+            // if (request.image[0]) {
+            //     const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
+            //     const base64string = split[1];
+            //     const buffer = Buffer.from(base64string, 'base64');
 
-                request.image = buffer;
-            } else {
-                request.image = "";
-            }
+            //     request.image = buffer;
+            // } else {
+            //     request.image = "";
+            // }
 
             const Product = new ProductModel({ ...request, productId: request.name.slice(0, 2).toLowerCase() + new Date().getTime(), creationDate: new Date(), updatedDate: new Date(), active: true })
 
@@ -73,7 +73,7 @@ exports.getActiveProducts = async (req, res, next) => {
             const currentDate = new Date().getDate();
 
             try {
-                let result = await ProductModel.find({ active: true }, {image:0});
+                let result = await ProductModel.find({ active: true });
                 let stockList = await StockModel.find({ 'date': { '$gte': new Date(currentYear, currentMonth, 1), '$lt': new Date(currentYear, (currentMonth + 1), 0) } });
                 let stock = stockList.reduce((accumulator, currentValue) => {
                     accumulator[currentValue.productId] = currentValue.purchasedStock || currentValue.openingStock ? (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0) + Number(currentValue.purchasedStock || currentValue.openingStock) : (accumulator[currentValue.productId] ? accumulator[currentValue.productId] : 0) - Number(currentValue.productSale);
@@ -111,15 +111,15 @@ exports.updateProduct = async (req, res, next) => {
         } else {
             try {
                 let request = { ...req.body.productInfo };
-                if (request.image[0]) {
-                    const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
-                    const base64string = split[1];
-                    const buffer = Buffer.from(base64string, 'base64');
+                // if (request.image[0]) {
+                //     const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
+                //     const base64string = split[1];
+                //     const buffer = Buffer.from(base64string, 'base64');
 
-                    request.image = buffer;
-                } else {
-                    request.image = "";
-                }
+                //     request.image = buffer;
+                // } else {
+                //     request.image = "";
+                // }
                 let stockResult = {};
                 request.updatedDate = new Date();
                 const result = await ProductModel.updateOne({ productId: request.productId }, request);

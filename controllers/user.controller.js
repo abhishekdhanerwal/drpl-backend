@@ -36,7 +36,7 @@ exports.getAll = async (req, res, next) => {
             res.status(401).json({ err: 'Token expired' });
         } else {
             try {
-                const allUsers = await UserModel.find({}, {image:0}).exec();
+                const allUsers = await UserModel.find({}).exec();
                 res.json(allUsers);
             } catch (err) {
                 res.status(500).send(err);
@@ -47,7 +47,7 @@ exports.getAll = async (req, res, next) => {
 
 exports.getActiveUsers = async (req, res, next) => {
     try {
-        const allUsers = await UserModel.find({ active: true }, {image:0}).exec();
+        const allUsers = await UserModel.find({ active: true }).exec();
         res.json(allUsers);
     } catch (err) {
         res.status(500).send(err);
@@ -87,15 +87,15 @@ exports.register = async (req, res, next) => {
             // request.accountNumber = CryptoJS.AES.decrypt(request.accountNumber, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
             // request.ifscCode = CryptoJS.AES.decrypt(request.ifscCode, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
             let plainPassword = CryptoJS.AES.decrypt(request.password, config.encryptionSecretKey).toString(CryptoJS.enc.Utf8);
-            if (request.image[0]) {
-                const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
-                const base64string = split[1];
-                const buffer = Buffer.from(base64string, 'base64');
+            // if (request.image[0]) {
+            //     const split = request.image[0].dataURL.split(','); // or whatever is appropriate here. this will work for the example given
+            //     const base64string = split[1];
+            //     const buffer = Buffer.from(base64string, 'base64');
 
-                request.image = buffer;
-            } else {
-                request.image = "";
-            }
+            //     request.image = buffer;
+            // } else {
+            //     request.image = "";
+            // }
 
             let configuration = await ConfigModel.find().lean();
 

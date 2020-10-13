@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-    image: { type: Buffer },
+    // image: { type: Buffer },
     name: { type: String, required: true },
     id: { type: String, required: true },
     // email: { type: String, required: true },
